@@ -1,9 +1,9 @@
 package com.easysales.dotty.fp.app.zionomicon.processes
 
-import com.easysales.dotty.fp.app.zionomicon.emails.{Email,sendEmail}
-import com.easysales.dotty.fp.app.zionomicon.models.{Person,NotValidatedPerson,FailPerson, PersonBase}
+import com.easysales.dotty.fp.app.zionomicon.emails.{Email, sendEmail}
+import com.easysales.dotty.fp.app.zionomicon.models.{FailPerson, NotValidatedPerson, Person, PersonBase}
 import com.easysales.dotty.fp.app.zionomicon.repositories.{createPerson, getPersonById, readFile, savePerson, writeFile}
-import com.easysales.dotty.fp.app.zionomicon.transactions.{_}
+import com.easysales.dotty.fp.app.zionomicon.transactions._
 import com.easysales.dotty.fp.app.zionomicon.validators.{SavedError, validatePerson}
 import zio.{Ref, URIO, ZIO}
 import zio.blocking.Blocking
@@ -11,9 +11,16 @@ import zio.clock.{Clock, currentDateTime}
 import zio.console.{Console, putStrLn, putStrLnErr}
 import zio.random.Random
 import zio.duration._
+import com.easysales.dotty.fp.app.zionomicon.html.{createPersonTable, Syntax, createNotValidatedPersonTable, createFailPersonTable}
+import com.easysales.dotty.fp.app.zionomicon.repositories.{readFile, writeFile}
 
 
-//Массовое создание персональных карточек
+//Массовое создание персональных карточек:
+//На входе: массив id-ов персон
+//На выходе: html-отчеты
+//P.S. в течение работы программы выполняется диагностика и результаты отправляются на почту
+
+//Классы ошибок создания
 final case class DbLost(message:String)
 final case class NotValidated(message:String)
 
@@ -54,6 +61,25 @@ def loggingStats(ref:Ref[Counters]):URIO[Clock with Blocking with Console with R
     _      <- writeFile(s"persons_stats", s"$time - $counts") <> putStrLnErr("Не удалось записать статистику")
    yield ()).delay(3.seconds).forever.ensuring(ref.get.flatMap(c=>sendEmail(Email("support@aetp.ru", "Статистика создания персон", c.toString()))).retryN(3)
                                                                <> putStrLnErr("Не удалось отправить сообщение на почтовый сервер") )//.disconnect
+
+//Подготовка отчетов
+//https://stackoverflow.com/questions/6372136/how-to-cast-each-element-in-scala-list
+def makeReports(persons:Seq[PersonBase]):ZIO[Console with Blocking, Nothing, Unit] =
+  for 
+    _                  <- putStrLn("Начинаем создание отчетов")
+    savedFiber         <- createPersonTable(persons.collect { case p:Person => p} ).flatMap(h=>writeFile("Person.html",h.toString("Сохраненные персоны"), false)
+                                                                                                      <>putStrLn("Не удалось сохранить файл отчета")).fork
+    notValidatedFiber  <- createNotValidatedPersonTable(persons.collect { case p:NotValidatedPerson => p} ).flatMap(h=>writeFile("NotValidatedPerson.html",h.toString("Некорректные персоны"), false)
+                                                                                                      <>putStrLn("Не удалось сохранить файл отчета")).fork
+    failFiber          <- createFailPersonTable(persons.collect { case p:FailPerson => p} ).flatMap(h=>writeFile("FailPerson.html",h.toString("Несохраненные персоны"), false)
+                                                                                                      <>putStrLn("Не удалось сохранить файл отчета")).fork
+    
+    _          <- savedFiber.await //join 
+    _          <- notValidatedFiber.await 
+    _          <- failFiber.await   
+    _          <- putStrLn("Отчеты созданы")
+  yield () 
+
 //Обработка 100 000 персон в 20 000 потоков
 lazy val makeAllPersons: ZIO[Blocking with Console with Clock with Random, Nothing, Unit] =
   for
@@ -61,6 +87,7 @@ lazy val makeAllPersons: ZIO[Blocking with Console with Clock with Random, Nothi
     ref           <- Ref.make(Counters())
     fiber         <- loggingStats(ref).fork
     persons       <- ZIO.foreachParN(20_000)(1 to 100_000)(makePerson(_, ref))
+    _             <- makeReports(persons)
     counts        <- ref.get
     _             <- putStrLn(s"Массовое создание персон: One ${counts.one}, Retry ${counts.retry}, NotValid ${counts.notValid}, Fail ${counts.fail}")
   yield () 

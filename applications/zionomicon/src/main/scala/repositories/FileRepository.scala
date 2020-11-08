@@ -16,9 +16,9 @@ def readFile(name:String):ZIO[Blocking with Console, IOException, String] = //UR
               res <- ZIO.fromTry(Try(try source.getLines().mkString finally source.close))//.orElse(ZIO.succeed("WTF2222!!!!")) //<* ZIO.effect(putStrLn("RELEASE")) //source.close
            yield res).refineToOrDie[IOException].tapCause(c=>putStrLn(s"Начало трассировки---${c.prettyPrint}---Конец трассировки"))//.orElseSucceed("gggg")
 
-def writeFile(name:String, text:String):ZIO[Blocking with Console, IOException, Unit] =
+def writeFile(name:String, text:String, append:Boolean = true):ZIO[Blocking with Console, IOException, Unit] =
   blocking(for
-            pw  <- ZIO.effect(new PrintWriter(new FileOutputStream(new File(name),true )))
+            pw  <- ZIO.effect(new PrintWriter(new FileOutputStream(new File(name), append )))
             //pw  <- ZIO.effect(new PrintWriter(new File(name)))
             res <- ZIO.fromTry(Try(try pw.println(text) finally pw.close)) //write
            yield res).refineToOrDie[IOException].tapCause(c=>putStrLn(s"Начало трассировки---${c.prettyPrint}---Конец трассировки"))//.orElseSucceed("gggg")
