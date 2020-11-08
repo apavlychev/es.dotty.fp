@@ -1,6 +1,6 @@
 package com.easysales.dotty.fp.app.zionomicon.repositories
 
-import com.easysales.dotty.fp.app.zionomicon.models.Person
+import com.easysales.dotty.fp.app.zionomicon.models.{Person}
 import zio.{IO, Ref, UIO, URIO, ZIO}
 import zio.clock.Clock
 import zio.console.{Console, putStrLn}
