@@ -63,10 +63,10 @@ def loggingStats(ref:Ref[Counters]):URIO[Clock with Blocking with Console with R
                                                                <> putStrLnErr("Не удалось отправить сообщение на почтовый сервер") )//.disconnect
 
 def prepareReports:ZIO[Console with Clock, Nothing, Unit]=
-  for 
+  for
     _    <- putStrLn("Подготовка отчетов")
-    _    <- putStrLn("Идет подготовка отчетов...").delay(1.seconds).forever.fork    
-  yield () 
+    _    <- putStrLn("Идет подготовка отчетов...").delay(1.seconds).forever.fork
+  yield ()
 
 //Подготовка отчетов
 //https://stackoverflow.com/questions/6372136/how-to-cast-each-element-in-scala-list
@@ -75,17 +75,25 @@ def makeReports(persons:Seq[PersonBase]):ZIO[Console with Blocking with Clock, N
     for
       _                 <- putStrLn("Начинаем создание отчетов")
       _                 <- graft(prepareReports).fork
-      savedFiber        <- createPersonTable(persons.collect { case p: Person => p }).delay(6.seconds).flatMap(h => writeFile("Person.html", h.toString("Сохраненные персоны"), false)
-                                                                                        <> putStrLn("Не удалось сохранить файл отчета")).fork
-      notValidatedFiber <- createNotValidatedPersonTable(persons.collect { case p: NotValidatedPerson => p }).delay(4.seconds).flatMap(h => writeFile("NotValidatedPerson.html", h.toString("Некорректные персоны"), false)
-                                                                                        <> putStrLn("Не удалось сохранить файл отчета")).fork
-      failFiber         <- createFailPersonTable(persons.collect { case p: FailPerson => p }).delay(3.seconds).flatMap(h => writeFile("FailPerson.html", h.toString("Несохраненные персоны"), false)
-                                                                                        <> putStrLn("Не удалось сохранить файл отчета")).fork
-  
-      _                 <- savedFiber.await //join 
+      savedCaption        = "Сохраненные персоны"
+      notValidatedCaption = "Некорректные персоны"
+      failCaption         = "Несохраненные персоны"
+      errorMessage        = "Не удалось сохранить файл отчета"
+      successMessage      = "Создан файл отчета"      
+      savedFiber        <- createPersonTable(persons.collect { case p: Person => p }).delay(6.seconds).flatMap(h => writeFile("Person.html", h.toString(savedCaption), false) 
+                                                                                        *> putStrLn(s"$successMessage: $savedCaption")
+                                                                                        <> putStrLn(s"$errorMessage: $savedCaption")).fork
+      notValidatedFiber <- createNotValidatedPersonTable(persons.collect { case p: NotValidatedPerson => p }).delay(4.seconds).flatMap(h => writeFile("NotValidatedPerson.html", h.toString(notValidatedCaption), false) 
+                                                                                        *> putStrLn(s"$successMessage: $notValidatedCaption")
+                                                                                        <> putStrLn(s"$errorMessage: $notValidatedCaption")).fork
+      failFiber         <- createFailPersonTable(persons.collect { case p: FailPerson => p }).delay(3.seconds).flatMap(h => writeFile("FailPerson.html", h.toString(failCaption), false)
+                                                                                        *> putStrLn(s"$successMessage: $failCaption")
+                                                                                        <> putStrLn(s"$errorMessage: $failCaption")).fork
+
+      _                 <- savedFiber.await //join
       _                 <- notValidatedFiber.await
       _                 <- failFiber.await
-      _                 <- putStrLn("Отчеты созданы")      
+      _                 <- putStrLn("Отчеты созданы")
     yield ()
   }
 
@@ -98,6 +106,6 @@ lazy val makeAllPersons: ZIO[Blocking with Console with Clock with Random, Nothi
     persons       <- ZIO.foreachParN(20_000)(1 to 100_000)(makePerson(_, ref))
     reportFork    <- makeReports(persons).fork
     counts        <- ref.get
-    _             <- putStrLn(s"Массовое создание персон: One ${counts.one}, Retry ${counts.retry}, NotValid ${counts.notValid}, Fail ${counts.fail}")    
+    _             <- putStrLn(s"Массовое создание персон: One ${counts.one}, Retry ${counts.retry}, NotValid ${counts.notValid}, Fail ${counts.fail}")
     _             <- reportFork.await
-  yield () 
+  yield ()
