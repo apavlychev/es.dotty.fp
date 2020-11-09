@@ -4,6 +4,7 @@
 
 ## Митапы
 1. [Введение в ZIO и самовалидация кода](https://www.youtube.com/watch?v=geF9YNGpyK0)
+2. [Массовое создание персональных карточек в 20 000 потоков](https://www.youtube.com/watch?v=HEStawqnUQE)
 
 ### Usage
 This is a normal sbt project, you can compile code with `sbt compile` and run it
