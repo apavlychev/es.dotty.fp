@@ -62,23 +62,32 @@ def loggingStats(ref:Ref[Counters]):URIO[Clock with Blocking with Console with R
    yield ()).delay(3.seconds).forever.ensuring(ref.get.flatMap(c=>sendEmail(Email("support@aetp.ru", "Статистика создания персон", c.toString()))).retryN(3)
                                                                <> putStrLnErr("Не удалось отправить сообщение на почтовый сервер") )//.disconnect
 
+def prepareReports:ZIO[Console with Clock, Nothing, Unit]=
+  for 
+    _    <- putStrLn("Подготовка отчетов")
+    _    <- putStrLn("Идет подготовка отчетов...").delay(1.seconds).forever.fork    
+  yield () 
+
 //Подготовка отчетов
 //https://stackoverflow.com/questions/6372136/how-to-cast-each-element-in-scala-list
-def makeReports(persons:Seq[PersonBase]):ZIO[Console with Blocking, Nothing, Unit] =
-  for 
-    _                  <- putStrLn("Начинаем создание отчетов")
-    savedFiber         <- createPersonTable(persons.collect { case p:Person => p} ).flatMap(h=>writeFile("Person.html",h.toString("Сохраненные персоны"), false)
-                                                                                                      <>putStrLn("Не удалось сохранить файл отчета")).fork
-    notValidatedFiber  <- createNotValidatedPersonTable(persons.collect { case p:NotValidatedPerson => p} ).flatMap(h=>writeFile("NotValidatedPerson.html",h.toString("Некорректные персоны"), false)
-                                                                                                      <>putStrLn("Не удалось сохранить файл отчета")).fork
-    failFiber          <- createFailPersonTable(persons.collect { case p:FailPerson => p} ).flatMap(h=>writeFile("FailPerson.html",h.toString("Несохраненные персоны"), false)
-                                                                                                      <>putStrLn("Не удалось сохранить файл отчета")).fork
-    
-    _          <- savedFiber.await //join 
-    _          <- notValidatedFiber.await 
-    _          <- failFiber.await   
-    _          <- putStrLn("Отчеты созданы")
-  yield () 
+def makeReports(persons:Seq[PersonBase]):ZIO[Console with Blocking with Clock, Nothing, Unit] =
+  ZIO.transplant { graft =>
+    for
+      _                 <- putStrLn("Начинаем создание отчетов")
+      _                 <- graft(prepareReports).fork
+      savedFiber        <- createPersonTable(persons.collect { case p: Person => p }).delay(6.seconds).flatMap(h => writeFile("Person.html", h.toString("Сохраненные персоны"), false)
+                                                                                        <> putStrLn("Не удалось сохранить файл отчета")).fork
+      notValidatedFiber <- createNotValidatedPersonTable(persons.collect { case p: NotValidatedPerson => p }).delay(4.seconds).flatMap(h => writeFile("NotValidatedPerson.html", h.toString("Некорректные персоны"), false)
+                                                                                        <> putStrLn("Не удалось сохранить файл отчета")).fork
+      failFiber         <- createFailPersonTable(persons.collect { case p: FailPerson => p }).delay(3.seconds).flatMap(h => writeFile("FailPerson.html", h.toString("Несохраненные персоны"), false)
+                                                                                        <> putStrLn("Не удалось сохранить файл отчета")).fork
+  
+      _                 <- savedFiber.await //join 
+      _                 <- notValidatedFiber.await
+      _                 <- failFiber.await
+      _                 <- putStrLn("Отчеты созданы")      
+    yield ()
+  }
 
 //Обработка 100 000 персон в 20 000 потоков
 lazy val makeAllPersons: ZIO[Blocking with Console with Clock with Random, Nothing, Unit] =
@@ -87,7 +96,8 @@ lazy val makeAllPersons: ZIO[Blocking with Console with Clock with Random, Nothi
     ref           <- Ref.make(Counters())
     fiber         <- loggingStats(ref).fork
     persons       <- ZIO.foreachParN(20_000)(1 to 100_000)(makePerson(_, ref))
-    _             <- makeReports(persons)
+    reportFork    <- makeReports(persons).fork
     counts        <- ref.get
-    _             <- putStrLn(s"Массовое создание персон: One ${counts.one}, Retry ${counts.retry}, NotValid ${counts.notValid}, Fail ${counts.fail}")
+    _             <- putStrLn(s"Массовое создание персон: One ${counts.one}, Retry ${counts.retry}, NotValid ${counts.notValid}, Fail ${counts.fail}")    
+    _             <- reportFork.await
   yield () 
