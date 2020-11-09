@@ -102,10 +102,10 @@ lazy val makeAllPersons: ZIO[Blocking with Console with Clock with Random, Nothi
   for
     _             <- putStrLn("Массовое создание персон")
     ref           <- Ref.make(Counters())
-    fiber         <- loggingStats(ref).fork
+    _             <- loggingStats(ref).fork
     persons       <- ZIO.foreachParN(20_000)(1 to 100_000)(makePerson(_, ref))
-    reportFork    <- makeReports(persons).fork
+    reportFiber   <- makeReports(persons).fork
     counts        <- ref.get
     _             <- putStrLn(s"Массовое создание персон: One ${counts.one}, Retry ${counts.retry}, NotValid ${counts.notValid}, Fail ${counts.fail}")
-    _             <- reportFork.await
+    _             <- reportFiber.await
   yield ()
