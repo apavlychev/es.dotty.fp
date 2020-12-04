@@ -6,7 +6,7 @@ enum Friends:
   case Oly, Alex, Kolya
 
 enum Pets(val owner:Friends):
-  def pretty:String=s"O: $owner, V: ${ordinal}, L: $enumLabel"
+  def pretty:String=s"O: $owner, V: ${ordinal}, L: $productPrefix"
   
   case Leya extends Pets(Friends.Oly)
   case Ozef extends Pets(Friends.Kolya)

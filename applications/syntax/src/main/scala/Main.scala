@@ -2,12 +2,15 @@ package com.easysales.dotty.fp.app.syntax
 //import org.rogach.scallop.ScallopConf.{_, given _}
 //import org.rogach.scallop.ScallopConf._
 
-import types.{ given _, _}
+import types.given
+import types.{_}
 import extensions.{_}
 import enums.{_}
 import tupled.{_}
 import traits.{_}
-import tagless.{given _, _}
+//import tagless.{given _, _}
+import tagless.given
+import tagless.{_}
 
 object Main :
 
@@ -37,10 +40,10 @@ object Main :
 
   def createDocuments =
     val list = List(Pets.Leya, Pets.Ozef, Pets.Matilda)
-    list.map(x=>new DocumentInfo(x.enumLabel) {}).foreach(x=>println(x.pretty))
+    list.map(x=>new DocumentInfo(x.productPrefix) {}).foreach(x=>println(x.pretty))
  
   def generateTemplates =
-    val list = List(Pets.Leya, Pets.Ozef, Pets.Matilda).map(_.enumLabel).template(List(Friends.Oly, Friends.Alex, Friends.Kolya).map(_.enumLabel))((a,b)=>s"$a-$b")
+    val list = List(Pets.Leya, Pets.Ozef, Pets.Matilda).map(_.productPrefix).template(List(Friends.Oly, Friends.Alex, Friends.Kolya).map(_.productPrefix))((a,b)=>s"$a-$b")
     //listTupled(List((1,"1"),(2, "2")))((a,b)=>println(s"$a-$b"))
     println(list.mkString(","))
     

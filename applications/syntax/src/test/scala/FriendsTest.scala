@@ -12,7 +12,7 @@ class FriendsTest :
     assertEquals(Friends.Oly, Pets.Leya.owner)
 
   @Test def alex_have_same_label: Unit =
-    assertEquals("Alex", Friends.Alex.enumLabel)
+    assertEquals("Alex", Friends.Alex.productPrefix)
 
   @Test def leya_display_str: Unit =
     assertEquals(s"O: Oly, V: 0, L: Leya", Pets.Leya.pretty)  

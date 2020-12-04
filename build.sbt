@@ -11,7 +11,7 @@ lazy val zioMagnolia = "dev.zio" %% "zio-test-magnolia" % zioVersion % Test
 lazy val monadic = "com.olegpy" %% "better-monadic-for" % "0.3.1"
  
 ThisBuild / version      := "0.1.0"
-ThisBuild / scalaVersion := "0.27.0-RC1"
+ThisBuild / scalaVersion := "3.0.0-M2"
 ThisBuild / organization := "com.easysales"
 
 //Тестирование нового синтакса Scala 3
@@ -24,7 +24,7 @@ lazy val syntax = (project in file ("applications/syntax")).
         typesafe,
         scallop
       ),
-      //libraryDependencies := libraryDependencies.value.map(_.withDottyCompat(scalaVersion.value)), //https://github.com/lampepfl/dotty-example-project
+      libraryDependencies := libraryDependencies.value.map(_.withDottyCompat(scalaVersion.value)), //https://github.com/lampepfl/dotty-example-project
       //testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework"))
     //    test in assembly := {},
 //    assemblyJarName in assembly := s"es-dotty=fp-app-syntax.jar",
