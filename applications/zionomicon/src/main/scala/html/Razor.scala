@@ -8,25 +8,31 @@ object Syntax:
     def apply(str: String):Html = str
     lazy val none:Html="<none>"
 
-    extension (value:Html):
-      def ^(other: Html):Html = s"<td>$value</td><td>$other</td>"
-      def &(other: Html):Html = s"<th>$value</th><th>$other</th>"
-      def ||(other: Html):Html = if value == Html.none then s"$other" else s"<tr>$value</tr><tr>$other</tr>" 
-      def +(other: Html):Html = s"$value$other"
-      def unary_~ :Html = s"<tr>${value}</tr>"
-      def toString(caption:String):String = s"<!DOCTYPE HTML>"+
-                                "<html>"+
-                                "<head>"+
-                                  "<meta charset=\"utf-8\">"+
-                                    s"<title>$caption</title>"+
-                                  "</head>"+
-                                  "<body>"+
-                                  "<table>"+
-                                  s"<caption>$caption</caption>"+
-                                  value+
-                                  "</table>"+
-                                  "</body>"+
-                                  "</html>"
+    extension (value:Html) 
+      def ^(other: Html): Html = s"<td>$value</td><td>$other</td>"
+
+      def &(other: Html): Html = s"<th>$value</th><th>$other</th>"
+
+      def ||(other: Html): Html = if value == Html.none then s"$other" else s"<tr>$value</tr><tr>$other</tr>"
+
+      def +(other: Html): Html = s"$value$other"
+
+      def unary_~ : Html = s"<tr>${value}</tr>"
+
+      def toString(caption: String): String = s"<!DOCTYPE HTML>" +
+        "<html>" +
+        "<head>" +
+        "<meta charset=\"utf-8\">" +
+        s"<title>$caption</title>" +
+        "</head>" +
+        "<body>" +
+        "<table>" +
+        s"<caption>$caption</caption>" +
+        value +
+        "</table>" +
+        "</body>" +
+        "</html>"
+    //}
 
 ////https://alvinalexander.com/scala/how-to-use-match-case-expression-isinstanceof-types-scala/
 //https://docs.scala-lang.org/ru/tour/pattern-matching.html

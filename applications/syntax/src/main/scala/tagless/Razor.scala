@@ -6,11 +6,11 @@ trait Razor[F[_]]:
   def template[A,B](d:F[A])(r:F[B])(s:(A,B)=>String):F[String] =
     flatMap(d)(a=>map(r)(b=>s(a,b)))
 
-given Razor[List]:
+given Razor[List] with
   override def map[A, B](d: List[A])(a: A => B): List[B] = d.map(a)
   override def flatMap[A, B](d: List[A])(a: A => List[B]): List[B] = d.flatMap(a)
 
-given Razor[Option]:
+given Razor[Option] with
   override def map[A, B](d: Option[A])(a: A => B): Option[B] = d.map(a)
   override def flatMap[A, B](d: Option[A])(a: A => Option[B]): Option[B] = d.flatMap(a)
   

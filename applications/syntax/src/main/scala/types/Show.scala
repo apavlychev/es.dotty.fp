@@ -7,17 +7,17 @@ trait Show[T]:
 object Show:
   def apply[T](using m: Show[T]) = m
 
-given Show[String]:
+given Show[String] with
   override def pretty(a: String): String = s"Pretty-Str:$a"
 
-given Show[Int]:
+given Show[Int] with 
   override def pretty(a: Int): String = s"Pretty-Int:$a"
 
-given Show[Long]:
+given Show[Long] with 
   override def pretty(a: Long): String = s"Pretty-Long:$a"
 
 //https://dotty.epfl.ch/docs/reference/contextual/givens.html
-given [T](using Show[T]) as Show[List[T]]:
+given [T](using Show[T]): Show[List[T]] with
   override def pretty(a: List[T]): String = a.map(Show[T].pretty(_)).mkString("<--",",","-->")
 
 //https://dotty.epfl.ch/docs/reference/contextual/using-clauses.html
