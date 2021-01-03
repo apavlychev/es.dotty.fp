@@ -9,7 +9,7 @@ import zio.duration._
 import com.easysales.dotty.fp.app.zionomicon.models.{Person, NotValidatedPerson, FailPerson}
 import com.easysales.dotty.fp.app.zionomicon.html.Syntax.{_}
 
-lazy val maxRows = 1_000
+lazy val maxRows = 10_000
 
 def createPersonTable(persons: Seq[Person]):UIO[Html]=
   for 

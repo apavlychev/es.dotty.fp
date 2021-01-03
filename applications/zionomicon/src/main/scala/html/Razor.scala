@@ -5,7 +5,7 @@ object Syntax:
   opaque type Html = String
 
   object Html:
-    def apply(str: String):Html = str
+    def apply(str: String):Html = if str == "" || str == null then none else str
     lazy val none:Html="<none>"
 
     extension (value:Html) 
@@ -13,11 +13,15 @@ object Syntax:
 
       def &(other: Html): Html = s"<th>$value</th><th>$other</th>"
 
-      def ||(other: Html): Html = if value == Html.none then s"$other" else s"<tr>$value</tr><tr>$other</tr>"
+      def ||(other: Html): Html = (value, other) match 
+        case (Html.none, Html.none) => Html.none
+        case (Html.none, ot) => s"<tr>$ot</tr>"
+        case (v, Html.none) => v
+        case (_,_) => s"$value<tr>$other</tr>"
 
       def +(other: Html): Html = s"$value$other"
 
-      def unary_~ : Html = s"<tr>${value}</tr>"
+      def unary_~ : Html = s"<tr>$value</tr>"
 
       def toString(caption: String): String = s"<!DOCTYPE HTML>" +
         "<html>" +
