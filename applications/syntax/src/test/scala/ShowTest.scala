@@ -2,7 +2,7 @@ package com.easysales.dotty.fp.app.syntax
 
 import org.junit.Test
 import org.junit.Assert._
-import types.{ given _, _}
+import types.{ given, _}
 
 //https://www.scalatest.org/getting_started_with_junit_4_in_scala
 class ShowTest :

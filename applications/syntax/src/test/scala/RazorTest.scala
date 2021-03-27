@@ -3,7 +3,7 @@ package com.easysales.dotty.fp.app.syntax
 import org.junit.Test
 import org.junit.Assert._
 
-import tagless.{given _, _}
+import tagless.{given, _}
 
 class RazorTest:
   @Test def generate_list_template: Unit =
