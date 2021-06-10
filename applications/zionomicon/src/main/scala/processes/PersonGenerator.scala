@@ -14,6 +14,8 @@ import zio.duration._
 import com.easysales.dotty.fp.app.zionomicon.html.{createPersonTable, Syntax, createNotValidatedPersonTable, createFailPersonTable}
 import com.easysales.dotty.fp.app.zionomicon.repositories.{readFile, writeFile}
 
+//https://scastie.scala-lang.org/72JOdbiLSyKXaxpEyGaxOA
+type DefEnv = Console with Blocking with Clock with Random
 
 //Массовое создание персональных карточек:
 //На входе: массив id-ов персон
@@ -41,7 +43,7 @@ def createOrUpdatePerson(id:Int):ZIO[Console with Clock with Random, DbLost|NotV
   yield procPerson
 
 //Обработка одной персоны
-def makePerson(id:Int, ref:Ref[Counters]):ZIO[Blocking with Console with Clock with Random, Nothing, PersonBase]=
+def makePerson(id:Int, ref:Ref[Counters]):ZIO[DefEnv, Nothing, PersonBase]=
   createOrUpdatePerson(id).flatMap(r=>ref.update(c=>c.copy(one = c.one+1)) *> ZIO.succeed(r)).catchAll {
     case DbLost(message) => putStrLn(s"Повторная попытка создать персону с id $id: $message").!
       *> createOrUpdatePerson(id).retryN(5).flatMap(r=>ref.update(c=>c.copy(retry= c.retry+1)) *> ZIO.succeed(r))
@@ -54,7 +56,7 @@ def makePerson(id:Int, ref:Ref[Counters]):ZIO[Blocking with Console with Clock w
 final case class Counters(one:Int = 0, retry:Int = 0, notValid:Int = 0, fail:Int=0)
 
 //Поток раз в 3 секунды сбрасывает статистику на диск и отправляет письмо при завершении
-def loggingStats(ref:Ref[Counters]):URIO[Clock with Blocking with Console with Random, Unit]=
+def loggingStats(ref:Ref[Counters]):URIO[DefEnv, Unit]=
   (for
     counts <- ref.get
     time   <- currentDateTime <> putStrLnErr("Не удалось получить тек. время").!
@@ -84,21 +86,21 @@ def makeReports(persons:Seq[PersonBase]):ZIO[Console with Blocking with Clock, N
                                                                                         *> putStrLn(s"$successMessage: $savedCaption")
                                                                                         <> putStrLn(s"$errorMessage: $savedCaption")).fork
       notValidatedFiber <- createNotValidatedPersonTable(persons.collect { case p: NotValidatedPerson => p }).delay(4.seconds).flatMap(h => writeFile("NotValidatedPerson.html", h.toString(notValidatedCaption), false) 
-                                                                                        *> putStrLn(s"$successMessage: $notValidatedCaption").!
-                                                                                        <> putStrLn(s"$errorMessage: $notValidatedCaption").!).fork
+                                                                                        *> putStrLn(s"$successMessage: $notValidatedCaption")
+                                                                                        <> putStrLn(s"$errorMessage: $notValidatedCaption")).fork
       failFiber         <- createFailPersonTable(persons.collect { case p: FailPerson => p }).delay(3.seconds).flatMap(h => writeFile("FailPerson.html", h.toString(failCaption), false)
-                                                                                        *> putStrLn(s"$successMessage: $failCaption").!
-                                                                                        <> putStrLn(s"$errorMessage: $failCaption").!).fork
+                                                                                        *> putStrLn(s"$successMessage: $failCaption")
+                                                                                        <> putStrLn(s"$errorMessage: $failCaption")).fork
 
       _                 <- savedFiber.await //join
       _                 <- notValidatedFiber.await
       _                 <- failFiber.await
-      _                 <- putStrLn("Отчеты созданы").!
+      _                 <- putStrLn("Отчеты созданы")!
     yield ()
   }
 
 //Обработка 100 000 персон в 20 000 потоков
-lazy val makeAllPersons: ZIO[Blocking with Console with Clock with Random, Nothing, Unit] =
+lazy val makeAllPersons: ZIO[DefEnv, Nothing, Unit] =
   for
     _             <- putStrLn("Массовое создание персон").!
     ref           <- Ref.make(Counters())
