@@ -22,9 +22,9 @@ object Main extends App:
   //Запуск подпрограмм
   def run(args: List[String]): URIO[ZEnv, ExitCode] =
     for 
-      _    <- putStrLn( s"Запуск приложения Zionomicon - name: ${Settings.name}, descr: ${Settings.descr}, age: ${Settings.age}")
+      _    <- putStrLn( s"Запуск приложения Zionomicon - name: ${Settings.name}, descr: ${Settings.descr}, age: ${Settings.age}").!
       conf = Args(args)
-      _    <- putStrLn(s"${conf.getProcess.descr}")
+      _    <- putStrLn(s"${conf.getProcess.descr}").!
       code <- conf.getProcess match 
         case Types.HelloWorld => helloWorld.exitCode
         case Types.HandleErrors => retryCopyFile.exitCode

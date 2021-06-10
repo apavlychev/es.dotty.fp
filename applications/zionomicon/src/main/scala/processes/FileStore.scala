@@ -3,8 +3,8 @@ package com.easysales.dotty.fp.app.zionomicon.processes
 import com.easysales.dotty.fp.app.zionomicon.repositories.{readFile, writeFile}
 import zio.{URIO, ZIO}
 import zio.blocking.Blocking
-import zio.console.{Console, getStrLn, putStrLn}
 import zio.console.{Console, getStrLn, putStrLn, putStrLnErr}
+//import scala.language.postfixOps
 
 import scala.io.Source
 
@@ -36,15 +36,15 @@ final case class WriteError(message:String)
 
 lazy val copyFile: ZIO[Console with Blocking, ReadError|WriteError, Unit] =
   for
-    _        <- putStrLn("Введите путь к файлу:")
+    _        <- putStrLn("Введите путь к файлу:").!
     fileName <- getStrLn.orDie//orElseFail("Некорректый ввод")
     data     <- readFile(fileName).orElseFail(ReadError("Не удалось прочитать файл"))//orElseSucceed("Это содержимое по-умолчанию")
     prodData = "<---begin---" + data + "---end--->"
-    _        <- putStrLn(s"Содержимое файла: ")
-    _        <- putStrLn(s"$prodData!")
+    _        <- putStrLn(s"Содержимое файла: ").!
+    _        <- putStrLn(s"$prodData!").!
     _        <- writeFile(s"${fileName}_copy", prodData).orElseFail(WriteError("К сожалению не удалось создать copy файл"))
-    _        <- putStrLn(s"Создана копия файла ${fileName}_copy") 
+    _        <- putStrLn(s"Создана копия файла ${fileName}_copy")!
   yield ()
 
 lazy val retryCopyFile:ZIO[Console with Blocking, Nothing, Unit] =
-  copyFile.foldM(error=>putStrLn(s"Произошла ошибка: $error. Повторите ввод") *> retryCopyFile, _ => ZIO.succeed(()))
+  copyFile.foldM(error=>putStrLn(s"Произошла ошибка: $error. Повторите ввод").! *> retryCopyFile, _ => ZIO.succeed(()))

@@ -2,7 +2,7 @@
 lazy val junit= "com.novocode" % "junit-interface" % "0.11" % "test"
 lazy val typesafe = "com.typesafe" % "config" % "1.4.0"
 //lazy val scallop = "org.rogach" %% "scallop" % "3.5.1"
-lazy val zioVersion = "1.0.6"
+lazy val zioVersion = "1.0.9"
 lazy val zioCore =  "dev.zio" %% "zio"               % zioVersion
 lazy val zioTest = "dev.zio" %% "zio-test"          % zioVersion % Test
 lazy val zioSbt = "dev.zio" %% "zio-test-sbt"      % zioVersion % Test
@@ -11,7 +11,7 @@ lazy val zioMagnolia = "dev.zio" %% "zio-test-magnolia" % zioVersion % Test
 //lazy val monadic = "com.olegpy" %% "better-monadic-for" % "0.3.1"
  
 ThisBuild / version      := "0.1.0"
-ThisBuild / scalaVersion := "3.0.0-RC2"
+ThisBuild / scalaVersion := "3.0.0"
 ThisBuild / organization := "com.easysales"
 
 //Тестирование нового синтакса Scala 3
@@ -62,7 +62,20 @@ lazy val zio = (project in file ("applications/zionomicon")).
     //resolvers += Resolver.url("typesafe", url("https://repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
 
     //libraryDependencies := libraryDependencies.value.map(_.withDottyCompat(scalaVersion.value)),
-    testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework"))
+    testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework")),
+    scalacOptions ++= Seq(
+      "-language:postfixOps"
+//      "-target:jvm-1.8",
+//      "-encoding", "UTF-8",
+//      "-unchecked",
+//      "-deprecation",
+//      "-Xfuture",
+//      "-Yno-adapted-args",
+//      "-Ywarn-dead-code",
+//      "-Ywarn-numeric-widen",
+//      "-Ywarn-value-discard",
+//      "-Ywarn-unused"
+    )
   )
   //.enablePlugins(AssemblyPlugin)
   .dependsOn(common)
