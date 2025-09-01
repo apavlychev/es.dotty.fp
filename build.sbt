@@ -10,8 +10,8 @@ lazy val zioJunit = "dev.zio" %% "zio-test-junit"    % zioVersion % Test
 lazy val zioMagnolia = "dev.zio" %% "zio-test-magnolia" % zioVersion % Test
 //lazy val monadic = "com.olegpy" %% "better-monadic-for" % "0.3.1"
  
-ThisBuild / version      := "0.1.0"
-ThisBuild / scalaVersion := "3.0.0"
+ThisBuild / version      := "0.2.0"
+ThisBuild / scalaVersion := "3.3.6"
 ThisBuild / organization := "com.easysales"
 
 //Тестирование нового синтакса Scala 3
