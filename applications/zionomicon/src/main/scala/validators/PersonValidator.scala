@@ -1,11 +1,7 @@
 package com.easysales.dotty.fp.app.zionomicon.validators
 
 import com.easysales.dotty.fp.app.zionomicon.models.Person
-import zio.{IO, Ref, UIO, URIO, ZIO}
-//import zio.clock.Clock
-//import zio.console.{Console, putStrLn}
-//import zio.random.{Random, nextInt, nextIntBounded}
-//import zio.duration._
+import zio.{IO, Ref, ZIO}
 
 //Ошибки при создании
 final case class SavedError(message: String)

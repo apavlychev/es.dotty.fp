@@ -5,19 +5,19 @@ object Syntax:
   opaque type Html = String
 
   object Html:
-    def apply(str: String):Html = if str == "" || str == null then none else str
-    lazy val none:Html="<none>"
+    def apply(str: String): Html = if str == "" || str == null then none else str
+    lazy val none: Html          = "<none>"
 
-    extension (value:Html) 
+    extension (value: Html)
       def ^(other: Html): Html = s"<td>$value</td><td>$other</td>"
 
       def &(other: Html): Html = s"<th>$value</th><th>$other</th>"
 
-      def ||(other: Html): Html = (value, other) match 
+      def ||(other: Html): Html = (value, other) match
         case (Html.none, Html.none) => Html.none
-        case (Html.none, ot) => s"<tr>$ot</tr>"
-        case (v, Html.none) => v
-        case (_,_) => s"$value<tr>$other</tr>"
+        case (Html.none, ot)        => s"<tr>$ot</tr>"
+        case (v, Html.none)         => v
+        case (_, _)                 => s"$value<tr>$other</tr>"
 
       def +(other: Html): Html = s"$value$other"
 
@@ -36,7 +36,7 @@ object Syntax:
         "</table>" +
         "</body>" +
         "</html>"
-    //}
+    // }
 
 ////https://alvinalexander.com/scala/how-to-use-match-case-expression-isinstanceof-types-scala/
 //https://docs.scala-lang.org/ru/tour/pattern-matching.html
@@ -55,12 +55,10 @@ object Syntax:
 //  def unary_~ = s"<table>${value}</table>"
 //  //def withTable = s"<table>${value}</table>"
 
-
 //object HtmlOpt:
 //  def apply(value: String) = new HtmlOpt(value)
 //  def unapply(value: String) = value.trim.contains("table")
 //  implicit def str2Opt(value: String) = HtmlOpt(value);
-
 
 //object Main {
 //  import HtmlOpt._

@@ -1,13 +1,8 @@
 package com.easysales.dotty.fp.app.zionomicon.processes
 
 import com.easysales.dotty.fp.app.zionomicon.repositories.{readFile, writeFile}
-import zio.{URIO, ZIO}
-//import zio.blocking.Blocking
-import zio.Console //, getStrLn, putStrLn, putStrLnErr}
-//import zio.Console._
+import zio.{IO, ZIO}
 import com.easysales.dotty.fp.app.zionomicon.utils.ConsoleExt.*
-//import scala.language.postfixOps
-
 import scala.io.Source
 
 //Тестовый файл /home/sirius/Desktop/dockers
@@ -37,7 +32,7 @@ def imperativeCopyFile: Unit = {
 case class FileReadError(message: String)
 case class FileWriteError(message: String)
 
-lazy val copyFile: ZIO[Any, FileReadError | FileWriteError, Unit] =
+lazy val copyFile: IO[FileReadError | FileWriteError, Unit] =
   for {
     _        <- printLine("Введите путь к файлу:")
     fileName <- readLine.orDie
@@ -50,8 +45,11 @@ lazy val copyFile: ZIO[Any, FileReadError | FileWriteError, Unit] =
     _        <- printLine(s"Создана копия файла ${fileName}_copy")
   } yield ()
 
-lazy val retryCopyFile: ZIO[Any, Nothing, Unit] =
+lazy val retryCopyFile: IO[Nothing, Unit] =
   copyFile.foldZIO(
-    error => printLineError(s"Произошла ошибка: $error. Повторите ввод") *> retryCopyFile,
+    {
+      case FileReadError(message)  => printLineError(s"Ошибка чтения файла: $message. Повторите ввод") *> retryCopyFile
+      case FileWriteError(message) => printLineError(s"Ошибка записи файла: $message. Повторите ввод") *> retryCopyFile
+    },
     _ => ZIO.succeed(())
   )
